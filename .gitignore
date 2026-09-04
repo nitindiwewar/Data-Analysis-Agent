@@ -21,6 +21,7 @@ venv/
 storage/rag_docs/*.csv
 storage/rag_docs/*.pdf
 storage/rag_docs/*.xlsx
+storage/rag_docs/*.txt
 !storage/rag_docs/rag_registry.json
 
 # IDE / System

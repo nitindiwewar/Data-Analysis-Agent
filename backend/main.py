@@ -24,7 +24,7 @@ from backend.database_registry import (
 )
 from backend.gemini_service import is_gemini_configured, set_runtime_gemini_key, close_http_client
 from backend.flowise_service import (
-    get_flowise_graph,
+    get_flowise_graph_data,
     get_flowise_templates,
     get_flowise_node_types
 )
@@ -239,7 +239,7 @@ async def set_llm_config(req: ConfigLlmRequest):
         "message": "Gemini API Key configured successfully."
     }
 
-# 3. Data Ingestion Endpoint (Step 3: CSV/Excel to Dynamic DB Table)
+# 7. Data Ingestion Endpoint (CSV/Excel to Dynamic DB Table)
 @app.post("/api/data/v1/upload-spreadsheet")
 async def upload_spreadsheet(file: UploadFile = File(...)):
     try:
@@ -257,14 +257,21 @@ async def upload_spreadsheet(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to ingest spreadsheet: {str(e)}")
 
-# 7. Flowise Integration (Flow A: Text-to-SQL & Charts | Flow B: Document RAG)
+# 8. Flowise Integration (Flow A: Text-to-SQL & Charts | Flow B: Document RAG)
 @app.get("/api/flowise/graph")
 async def get_flowise_graph_endpoint(flowType: Optional[str] = "flow_a", template: Optional[str] = None):
-    from backend.flowise_service import get_flowise_graph_data
     selected_flow = flowType or template or "flow_a"
     return get_flowise_graph_data(selected_flow)
 
-# 8. Benchmarks & Audit Logs
+@app.get("/api/flowise/templates")
+async def get_flowise_templates_endpoint():
+    return get_flowise_templates()
+
+@app.get("/api/flowise/nodes/types")
+async def get_flowise_nodes_endpoint():
+    return get_flowise_node_types()
+
+# 9. Benchmarks & Audit Logs
 @app.get("/api/benchmark/run")
 async def run_benchmark():
     return await run_full_benchmark_suite()
@@ -278,7 +285,7 @@ async def clear_logs():
     clear_audit_logs()
     return {"success": True, "message": "Audit logs cleared"}
 
-# 9. Persistent User Question History
+# 10. Persistent User Question History
 @app.get("/api/history")
 async def get_history(limit: int = 60):
     return {

@@ -51,6 +51,12 @@ def _load_persisted_registry():
             docs = data.get("documents", {})
             for doc_id, meta in docs.items():
                 file_path = meta.get("filePath")
+                # Fallback to local storage dir if absolute path from another environment doesn't exist
+                if not file_path or not os.path.exists(file_path):
+                    local_candidate = os.path.join(STORAGE_DIR, f"{doc_id}_{meta['filename']}")
+                    if os.path.exists(local_candidate):
+                        file_path = local_candidate
+                        meta["filePath"] = local_candidate
                 if file_path and os.path.exists(file_path):
                     _documents_store[doc_id] = meta
                     # Recreate in-memory SQLite table if CSV

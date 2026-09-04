@@ -8,58 +8,61 @@
 
 ```
 data-analyst-ai-agent-with-flowise-using-ps-sql/
-├── backend/                       # Node.js & TypeScript Analytical Backend
-│   ├── agent.ts                   # Central multi-step pipeline coordinator
-│   ├── nlp.ts                     # Intent detection & entity extraction engine
-│   ├── pssql.ts                   # PS-SQL phrase-to-schema linking & pruning
-│   ├── text2sql.ts                # Text-to-SQL query synthesis engine
-│   ├── validator.ts               # AST parser & mutation blocker (Read-Only Guard)
-│   ├── analyzer.ts                # Business insights & executive summary generator
-│   ├── mysql.ts                   # Dual-mode live MySQL 8.0 client + embedded database
-│   ├── flowise.ts                 # Flowise chatflow orchestration & node templates
-│   ├── logger.ts                  # Central audit trail & latency telemetry
-│   ├── testSuite.ts               # 32+ automated benchmark test suite
-│   ├── serverRoutes.ts            # Express REST API endpoints
-│   └── gemini.ts                  # Google GenAI SDK interface
+├── backend/                       # Python FastAPI Analytical Backend
+│   ├── main.py                    # REST controller & Lifespan application
+│   ├── agent_orchestrator.py      # Master coordinator (NLP, Schema, Text2SQL, Execution)
+│   ├── analyzer.py                # Power BI KPI engine, anomaly detection & executive narration
+│   ├── benchmarks.py              # Automated SQL benchmark suite
+│   ├── database_registry.py       # Universal multi-DB connector & connection pooling
+│   ├── flowise_service.py         # Flowise Agentflow V2 graphs & custom tool specs
+│   ├── gemini_service.py          # Google Gemini API connector with keep-alive & caching
+│   ├── init_db.py                 # SQLite database initializer & seeder
+│   ├── logger_service.py          # Audit telemetry & query history persistence
+│   ├── nlp_service.py             # Intent detection & Hinglish entity extractor
+│   ├── pssql_linker.py            # PS-SQL phrase-based schema linking
+│   ├── rag_service.py             # In-memory document & spreadsheet SQL RAG engine
+│   ├── text2sql_service.py        # Text-to-SQL generation engine
+│   └── validator.py               # AST parser & read-only safety guard
 │
 ├── database/                      # Relational Database Definitions
-│   ├── schema.sql                 # MySQL DDL for retail_sales_db (7 tables)
-│   └── seed.sql                   # Realistic enterprise retail dataset seeds
+│   ├── sales_analytics.sqlite     # Pre-seeded analytical SQLite database
+│   ├── schema.sql                 # Database DDL schema definitions
+│   └── seed.sql                   # Realistic retail dataset seeds
 │
 ├── flowise/                       # Flowise Chatflow & Integration Assets
+│   ├── dataviz-analyst-chatflow.json # Power BI Visual Dashboard Agentflow
 │   ├── flowise-chatflow.json      # Production-ready exportable Flowise workflow JSON
 │   └── workflow-docs.md           # Flowise node specifications & lifecycle docs
 │
-├── frontend/                      # Modern React (JSX) Client Application
-│   ├── index.html                 # Entry HTML (Plus Jakarta Sans, Outfit, JetBrains Mono)
+├── frontend/                      # Modern React (Vite + Tailwind CSS) Client
+│   ├── index.html                 # Entry HTML
 │   └── src/
-│       ├── App.jsx                # Root Application Component & Tab Controller
-│       ├── main.jsx               # React DOM Entrypoint
-│       ├── index.css              # Tailwind CSS, Glassmorphism & custom scrollbars
-│       ├── components/            # 11 Modular UI components (.jsx)
-│       │   ├── TopNav.jsx         # Glassmorphic header & status badges
-│       │   ├── ChatAnalyst.jsx    # Analyst chat studio & prompt recommendations
-│       │   ├── DatabaseExplorer.jsx # Interactive React Flow ER diagram & dictionary
-│       │   ├── FlowiseVisualizer.jsx # Flowise workflow designer, runner & JSON export
-│       │   ├── BenchmarkEvaluation.jsx # 32+ automated accuracy scorecard
-│       │   ├── SqlConsole.jsx     # Dark IDE SQL query editor & history drawer
-│       │   ├── SqlResultTable.jsx # Paginated, sortable table with CSV export
-│       │   ├── PipelineStepViewer.jsx # 5-stage pipeline trace accordion
-│       │   ├── SchemaLinkingVisualizer.jsx # PS-SQL alignment cards & join graph
-│       │   ├── VisualAnalyticsViewer.jsx # Auto-chart engine (Bar, Ranking, Line, Area, Donut)
-│       │   └── AuditLogsViewer.jsx # Central audit log search & modal inspector
+│       ├── App.jsx                # Root application & tab controller
+│       ├── main.jsx               # React DOM entrypoint
+│       ├── index.css              # Styling, glassmorphism & dark themes
+│       ├── components/            # Modular UI components (.jsx)
+│       │   ├── TopNav.jsx         # Header navigation & database/mode switcher
+│       │   ├── ChatAnalyst.jsx    # BI studio, prompt recommendations & persona briefs
+│       │   ├── DatabaseExplorer.jsx # Interactive React Flow ER diagram & schema
+│       │   ├── DynamicChartRenderer.jsx # Auto-chart engine & anomaly callouts
+│       │   ├── Immersive3DVisualizer.jsx # Interactive 3D WebGL/Canvas visualizer
+│       │   ├── FlowiseVisualizer.jsx # Flowise workflow designer & runner
+│       │   ├── BenchmarkEvaluation.jsx # Automated accuracy evaluation
+│       │   ├── SqlConsole.jsx     # SQL query editor & history
+│       │   ├── SqlResultTable.jsx # Interactive tabular results with CSV export
+│       │   └── AuditLogsViewer.jsx # Central audit telemetry inspector
 │       ├── services/
-│       │   └── api.js             # Client HTTP API methods (fetch)
+│       │   └── api.js             # API client methods
 │       └── types/
-│           └── index.js           # JSDoc Type Definitions & Enums
+│           └── index.js           # Type definitions
+│
+├── storage/                       # Storage for RAG documents
+│   └── rag_docs/                  # Uploaded datasets & rag_registry.json
 │
 ├── .env.example                   # Environment configuration template
 ├── .gitignore                     # Git ignore rules
-├── metadata.json                  # Application metadata
-├── package.json                   # Project dependencies & npm scripts
-├── server.ts                      # Full-stack production Express server
-├── tsconfig.json                  # TypeScript compiler settings
-└── vite.config.ts                 # Vite bundler config with frontend root & backend proxy
+├── package.json                   # NPM dependencies & scripts
+└── vite.config.js                 # Vite bundler config with backend proxy
 ```
 
 ---
