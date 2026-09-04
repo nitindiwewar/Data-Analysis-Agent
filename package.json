@@ -1,0 +1,30 @@
+{
+  "name": "data-analyst-ai-agent",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "description": "Autonomous AI Data Analyst agent with Python FastAPI backend, Flowise orchestration, PS-SQL schema linking, and Gemini for natural language to SQL analytics.",
+  "scripts": {
+    "dev": "concurrently --kill-others --names \"BACKEND,FRONTEND\" --prefix-colors \"yellow,cyan\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "python -m uvicorn backend.main:app --port 8000 --host 0.0.0.0 --reload",
+    "dev:frontend": "vite --port=3000 --host=0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "concurrently --kill-others --names \"BACKEND,FRONTEND\" --prefix-colors \"yellow,cyan\" \"python -m uvicorn backend.main:app --port 8000 --host 0.0.0.0\" \"vite --port=3000 --host=0.0.0.0\""
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.1.14",
+    "@vitejs/plugin-react": "^5.0.4",
+    "@xyflow/react": "^12.11.3",
+    "chart.js": "^4.5.1",
+    "lucide-react": "^0.546.0",
+    "react": "^19.0.1",
+    "react-chartjs-2": "^5.3.1",
+    "react-dom": "^19.0.1",
+    "tailwindcss": "^4.1.14",
+    "vite": "^6.2.3"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.5"
+  }
+}

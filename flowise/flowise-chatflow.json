@@ -1,0 +1,279 @@
+{
+  "flowId": "flow_dataviz_powerbi_agent",
+  "flowName": "Flow A: DataViz Analyst (Power BI Visual Dashboard Agent)",
+  "flowType": "flow_dataviz",
+  "systemPrompt": "You are \"DataViz Analyst,\" an autonomous data analysis agent.\n\n## MISSION\nTurn raw, uploaded, or queried data into accurate insights and a clean,\nPower BI\u2013style visual dashboard, without ever inventing numbers.\n\n## TOOLS AVAILABLE TO YOU\n- data_profiler: returns schema, row count, dtypes, nulls, and summary\n  stats for the loaded dataset.\n- code_executor: runs Python (pandas/numpy) in a sandbox for any\n  calculation, aggregation, or transformation. ALWAYS use this for\n  math \u2014 never compute sums, averages, growth rates, or counts yourself.\n- chart_generator: takes a chart type + data + labels and returns a\n  rendered chart (image or HTML).\n- dashboard_builder: assembles multiple chart_generator outputs plus\n  KPI cards into a single grid-layout HTML dashboard.\n- sql_query (if connected): runs read-only SQL against the connected\n  database.\n\n## WORKFLOW (follow in order, do not skip steps)\n1. INGEST \u2014 Confirm the dataset is loaded. If a file was uploaded, call\n   data_profiler before doing anything else.\n2. CLARIFY \u2014 If the user's goal is ambiguous (e.g., \"analyze this\")\n   infer the 3-5 most business-relevant questions from the column\n   names (trends over time, breakdowns by category, top/bottom\n   performers, outliers) rather than asking the user to specify\n   everything. Only ask a clarifying question if the data genuinely\n   supports multiple incompatible interpretations.\n3. CLEAN \u2014 Flag missing values, duplicate rows, or obvious type issues\n   found by data_profiler. Note them briefly; don't block analysis\n   over minor issues.\n4. ANALYZE \u2014 Use code_executor for every calculation. Never estimate,\n   round dramatically, or \"eyeball\" a number from a sample.\n5. CHOOSE VISUALS \u2014 Match chart type to data shape:\n   - Trend over time -> line chart\n   - Compare categories -> bar chart (horizontal if >6 categories or long labels)\n   - Part-to-whole (<=5 slices) -> donut chart; avoid pie/donut beyond 5 categories, use a bar chart instead\n   - Relationship between two numeric variables -> scatter plot\n   - Single important number (total revenue, growth %, count) -> KPI card, not a chart\n   - Ranking -> sorted horizontal bar chart\n6. BUILD DASHBOARD \u2014 Call dashboard_builder once with all chart specs\n   and KPI cards together, arranged as:\n   - Row 1: 3-4 KPI cards (the headline numbers)\n   - Row 2-3: 2-3 charts per row, most important trend chart first\n   - Consistent color palette across all charts (pass the same palette to every chart_generator call)\n7. NARRATE \u2014 After the dashboard renders, give a short summary: 2-4\n   sentences covering the single most important finding, one notable\n   anomaly or risk, and one actionable next step. Do not restate every\n   number already visible on the dashboard.\n\n## OUTPUT RULES\n- Every number in your narration must trace back to a code_executor\n  result. If you can't verify it, say so instead of guessing.\n- Keep prose concise \u2014 the dashboard carries the detail, your text\n  carries the \"so what.\"\n- If the dataset is too large to reason about directly, work from\n  data_profiler's summary and push full computation to code_executor;\n  never ask the LLM context window to hold raw rows for math.\n- If a request would require exposing sensitive columns (PII, salaries,\n  etc.) beyond what's needed to answer the question, aggregate or mask\n  before displaying.\n- If data is insufficient to answer confidently, state the limitation\n  plainly rather than filling the gap with a plausible-sounding number.",
+  "nodes": [
+    {
+      "id": "node_input",
+      "name": "chatInput",
+      "label": "1. Chat & File Upload Input",
+      "category": "Input",
+      "description": "Receives CSV/Excel upload or natural language data query",
+      "inputs": {
+        "supportedFormats": [
+          ".csv",
+          ".xlsx",
+          ".json",
+          "SQL Query"
+        ],
+        "chatPrompt": "string"
+      },
+      "outputs": [
+        "node_agent_dataviz"
+      ],
+      "status": "completed",
+      "position": {
+        "x": 40,
+        "y": 200
+      }
+    },
+    {
+      "id": "node_llm_model",
+      "name": "chatOpenAI",
+      "label": "2. LLM Engine (Gemini / Claude / GPT-4o)",
+      "category": "Model",
+      "description": "Primary reasoning LLM for planning data analysis & tool routing",
+      "inputs": {
+        "model": "gemini-3.7-flash / gpt-4o",
+        "temperature": 0.1,
+        "maxTokens": 2048
+      },
+      "outputs": [
+        "node_agent_dataviz"
+      ],
+      "status": "completed",
+      "position": {
+        "x": 300,
+        "y": 60
+      }
+    },
+    {
+      "id": "node_memory",
+      "name": "bufferMemory",
+      "label": "3. Conversational Buffer Memory",
+      "category": "Memory",
+      "description": "Retains active dataset schema, profile stats, and conversation turns",
+      "inputs": {
+        "memoryKey": "chat_history",
+        "windowSize": 10
+      },
+      "outputs": [
+        "node_agent_dataviz"
+      ],
+      "status": "completed",
+      "position": {
+        "x": 300,
+        "y": 340
+      }
+    },
+    {
+      "id": "node_agent_dataviz",
+      "name": "toolCallingAgent",
+      "label": "4. DataViz Analyst Agent Node",
+      "category": "Agent",
+      "description": "Autonomous Data Analysis Agent executing INGEST -> CLEAN -> ANALYZE -> VISUALIZE -> NARRATE",
+      "inputs": {
+        "systemPrompt": "You are \"DataViz Analyst,\" an autonomous data analysis agent.\n\n## MISSION\nTurn raw, uploaded, or queried data into accurate insights and a clean,\nPower BI\u2013style visual dashboard, without ever inventing numbers.\n\n## TOOLS AVAILABLE TO YOU\n- data_profiler: returns schema, row count, dtypes, nulls, and summary\n  stats for the loaded dataset.\n- code_executor: runs Python (pandas/numpy) in a sandbox for any\n  calculation, aggregation, or transformation. ALWAYS use this for\n  math \u2014 never compute sums, averages, growth rates, or counts yourself.\n- chart_generator: takes a chart type + data + labels and returns a\n  rendered chart (image or HTML).\n- dashboard_builder: assembles multiple chart_generator outputs plus\n  KPI cards into a single grid-layout HTML dashboard.\n- sql_query (if connected): runs read-only SQL against the connected\n  database.\n\n## WORKFLOW (follow in order, do not skip steps)\n1. INGEST \u2014 Confirm the dataset is loaded. If a file was uploaded, call\n   data_profiler before doing anything else.\n2. CLARIFY \u2014 If the user's goal is ambiguous (e.g., \"analyze this\")\n   infer the 3-5 most business-relevant questions from the column\n   names (trends over time, breakdowns by category, top/bottom\n   performers, outliers) rather than asking the user to specify\n   everything. Only ask a clarifying question if the data genuinely\n   supports multiple incompatible interpretations.\n3. CLEAN \u2014 Flag missing values, duplicate rows, or obvious type issues\n   found by data_profiler. Note them briefly; don't block analysis\n   over minor issues.\n4. ANALYZE \u2014 Use code_executor for every calculation. Never estimate,\n   round dramatically, or \"eyeball\" a number from a sample.\n5. CHOOSE VISUALS \u2014 Match chart type to data shape:\n   - Trend over time -> line chart\n   - Compare categories -> bar chart (horizontal if >6 categories or long labels)\n   - Part-to-whole (<=5 slices) -> donut chart; avoid pie/donut beyond 5 categories, use a bar chart instead\n   - Relationship between two numeric variables -> scatter plot\n   - Single important number (total revenue, growth %, count) -> KPI card, not a chart\n   - Ranking -> sorted horizontal bar chart\n6. BUILD DASHBOARD \u2014 Call dashboard_builder once with all chart specs\n   and KPI cards together, arranged as:\n   - Row 1: 3-4 KPI cards (the headline numbers)\n   - Row 2-3: 2-3 charts per row, most important trend chart first\n   - Consistent color palette across all charts (pass the same palette to every chart_generator call)\n7. NARRATE \u2014 After the dashboard renders, give a short summary: 2-4\n   sentences covering the single most important finding, one notable\n   anomaly or risk, and one actionable next step. Do not restate every\n   number already visible on the dashboard.\n\n## OUTPUT RULES\n- Every number in your narration must trace back to a code_executor\n  result. If you can't verify it, say so instead of guessing.\n- Keep prose concise \u2014 the dashboard carries the detail, your text\n  carries the \"so what.\"\n- If the dataset is too large to reason about directly, work from\n  data_profiler's summary and push full computation to code_executor;\n  never ask the LLM context window to hold raw rows for math.\n- If a request would require exposing sensitive columns (PII, salaries,\n  etc.) beyond what's needed to answer the question, aggregate or mask\n  before displaying.\n- If data is insufficient to answer confidently, state the limitation\n  plainly rather than filling the gap with a plausible-sounding number.",
+        "tools": [
+          "data_profiler",
+          "code_executor",
+          "chart_generator",
+          "dashboard_builder",
+          "sql_query"
+        ]
+      },
+      "outputs": [
+        "node_chat_output"
+      ],
+      "status": "completed",
+      "position": {
+        "x": 620,
+        "y": 200
+      }
+    },
+    {
+      "id": "node_tool_profiler",
+      "name": "customTool",
+      "label": "5. Tool: data_profiler",
+      "category": "Tool",
+      "description": "Returns schema, row count, dtypes, nulls, and statistical distribution",
+      "inputs": {
+        "name": "data_profiler",
+        "type": "CustomTool",
+        "code": "// Flowise Custom Tool: data_profiler\nconst profile = {\n  rowCount: df.length,\n  columns: Object.keys(df[0] || {}),\n  dtypes: inferDataTypes(df),\n  missingValues: calculateNulls(df),\n  summaryStats: computeFiveNumberSummary(df)\n};\nreturn JSON.stringify(profile);"
+      },
+      "outputs": [
+        "node_agent_dataviz"
+      ],
+      "status": "completed",
+      "position": {
+        "x": 920,
+        "y": 40
+      }
+    },
+    {
+      "id": "node_tool_code_executor",
+      "name": "customTool",
+      "label": "6. Tool: code_executor (Sandbox)",
+      "category": "Tool",
+      "description": "Sandboxed Python (pandas/numpy) engine for strict deterministic math & aggregations",
+      "inputs": {
+        "name": "code_executor",
+        "type": "CustomTool",
+        "code": "// Flowise Custom Tool: code_executor (Sandboxed E2B / Python)\nconst res = await sandbox.runPython(`\nimport pandas as pd, numpy as np\ndf = pd.read_csv('$datasetPath')\n# Deterministic Math Execution\nresult = $pythonSnippet\nprint(result.to_json(orient='records'))\n`);\nreturn res.stdout;"
+      },
+      "outputs": [
+        "node_agent_dataviz"
+      ],
+      "status": "completed",
+      "position": {
+        "x": 920,
+        "y": 120
+      }
+    },
+    {
+      "id": "node_tool_chart_gen",
+      "name": "customTool",
+      "label": "7. Tool: chart_generator",
+      "category": "Tool",
+      "description": "Renders high-definition Chart.js visual specs or QuickChart images",
+      "inputs": {
+        "name": "chart_generator",
+        "type": "CustomTool",
+        "code": "// Flowise Custom Tool: chart_generator\nconst chartConfig = {\n  type: $chartType, // 'line' | 'bar' | 'doughnut' | 'scatter'\n  data: { labels: $labels, datasets: [{ label: $title, data: $values, backgroundColor: $colors }] },\n  options: { responsive: true, plugins: { legend: { display: true } } }\n};\nreturn JSON.stringify(chartConfig);"
+      },
+      "outputs": [
+        "node_agent_dataviz"
+      ],
+      "status": "completed",
+      "position": {
+        "x": 920,
+        "y": 200
+      }
+    },
+    {
+      "id": "node_tool_dashboard_builder",
+      "name": "customTool",
+      "label": "8. Tool: dashboard_builder",
+      "category": "Tool",
+      "description": "Assembles Power BI-style CSS Grid: Row 1 KPI cards + Rows 2-3 Multi-Chart Grid",
+      "inputs": {
+        "name": "dashboard_builder",
+        "type": "CustomTool",
+        "code": "// Flowise Custom Tool: dashboard_builder\nconst kpiCards = $kpis.map(k => `\n  <div class=\"kpi-card\" style=\"background:#fff;border-radius:8px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.1);\">\n    <div style=\"font-size:12px;color:#64748b;font-weight:600;\">${k.label}</div>\n    <div style=\"font-size:22px;font-weight:800;color:#0f172a;\">${k.value}</div>\n    ${k.change ? `<div style=\"font-size:11px;color:${k.change.startsWith('+') ? '#16a34a' : '#dc2626'};\">${k.change}</div>` : ''}\n  </div>`).join('');\n\nconst chartBlocks = $charts.map(c => `\n  <div class=\"chart-tile\" style=\"background:#fff;border-radius:8px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,.1);\">\n    ${c.html || c.rendered}\n  </div>`).join('');\n\nreturn `<div style=\"display:grid;grid-template-columns:repeat(4,1fr);gap:12px;\">${kpiCards}</div>\n<div style=\"display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px;\">${chartBlocks}</div>`;"
+      },
+      "outputs": [
+        "node_agent_dataviz"
+      ],
+      "status": "completed",
+      "position": {
+        "x": 920,
+        "y": 280
+      }
+    },
+    {
+      "id": "node_tool_sql_query",
+      "name": "customTool",
+      "label": "9. Tool: sql_query (Read-Only)",
+      "category": "Tool",
+      "description": "Executes read-only SQL queries against connected MySQL/PostgreSQL/SQLite database",
+      "inputs": {
+        "name": "sql_query",
+        "type": "CustomTool",
+        "code": "// Flowise Custom Tool: sql_query\nif (!/^\\s*SELECT\\b/i.test($query)) throw new Error('Security Violation: Only SELECT statements allowed');\nconst res = await db.query($query);\nreturn JSON.stringify(res.rows);"
+      },
+      "outputs": [
+        "node_agent_dataviz"
+      ],
+      "status": "completed",
+      "position": {
+        "x": 920,
+        "y": 360
+      }
+    },
+    {
+      "id": "node_chat_output",
+      "name": "chatOutput",
+      "label": "10. Chat & Dashboard Output",
+      "category": "Output",
+      "description": "Renders inline Power BI-style Visual Dashboard + 2-4 sentence Executive Narration",
+      "inputs": {
+        "format": "Power BI Inline HTML Dashboard + Narration"
+      },
+      "outputs": [],
+      "status": "completed",
+      "position": {
+        "x": 1200,
+        "y": 200
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e_in_agent",
+      "source": "node_input",
+      "target": "node_agent_dataviz",
+      "animated": true
+    },
+    {
+      "id": "e_model_agent",
+      "source": "node_llm_model",
+      "target": "node_agent_dataviz",
+      "animated": true
+    },
+    {
+      "id": "e_mem_agent",
+      "source": "node_memory",
+      "target": "node_agent_dataviz",
+      "animated": true
+    },
+    {
+      "id": "e_tool1_agent",
+      "source": "node_tool_profiler",
+      "target": "node_agent_dataviz",
+      "animated": true
+    },
+    {
+      "id": "e_tool2_agent",
+      "source": "node_tool_code_executor",
+      "target": "node_agent_dataviz",
+      "animated": true
+    },
+    {
+      "id": "e_tool3_agent",
+      "source": "node_tool_chart_gen",
+      "target": "node_agent_dataviz",
+      "animated": true
+    },
+    {
+      "id": "e_tool4_agent",
+      "source": "node_tool_dashboard_builder",
+      "target": "node_agent_dataviz",
+      "animated": true
+    },
+    {
+      "id": "e_tool5_agent",
+      "source": "node_tool_sql_query",
+      "target": "node_agent_dataviz",
+      "animated": true
+    },
+    {
+      "id": "e_agent_out",
+      "source": "node_agent_dataviz",
+      "target": "node_chat_output",
+      "animated": true
+    }
+  ],
+  "totalNodes": 10,
+  "totalEdges": 9,
+  "flowStatus": "Active & Synchronized",
+  "framework": "Flowise Agentflow V2",
+  "tools": [
+    "data_profiler",
+    "code_executor",
+    "chart_generator",
+    "dashboard_builder",
+    "sql_query"
+  ]
+}

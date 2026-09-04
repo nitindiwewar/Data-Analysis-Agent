@@ -1,0 +1,29 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+
+# Large uploaded documents/datasets (storage data)
+storage/rag_docs/*.csv
+storage/rag_docs/*.pdf
+storage/rag_docs/*.xlsx
+!storage/rag_docs/rag_registry.json
+
+# IDE / System
+.vscode/
+.idea/
+*.sqlite3-journal

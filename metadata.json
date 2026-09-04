@@ -1,0 +1,6 @@
+{
+  "name": "Data Analyst AI Agent with Flowise using PS-SQL",
+  "description": "AI-powered Data Analyst Agent with PS-SQL inspired phrase-based schema linking, text-to-SQL generation, validation, MySQL execution, and Flowise integration.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
