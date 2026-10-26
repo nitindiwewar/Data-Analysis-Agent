@@ -21,7 +21,7 @@ FLOW_A_NODES = [
         "inputs": {"question": "string", "language": "en / hi / hinglish"},
         "outputs": ["node_master_prompt"],
         "status": "completed",
-        "position": {"x": 30, "y": 180}
+        "position": {"x": 40, "y": 220}
     },
     {
         "id": "node_chat_model",
@@ -32,7 +32,7 @@ FLOW_A_NODES = [
         "inputs": {"model": "gemini-flash / gpt-4o-mini", "temperature": 0.1, "maxTokens": 1500},
         "outputs": ["node_agent_tool_caller"],
         "status": "completed",
-        "position": {"x": 290, "y": 60}
+        "position": {"x": 340, "y": 60}
     },
     {
         "id": "node_master_prompt",
@@ -45,7 +45,7 @@ FLOW_A_NODES = [
         },
         "outputs": ["node_agent_tool_caller"],
         "status": "completed",
-        "position": {"x": 290, "y": 280}
+        "position": {"x": 340, "y": 220}
     },
     {
         "id": "node_sql_tool",
@@ -59,7 +59,7 @@ FLOW_A_NODES = [
         },
         "outputs": ["node_agent_tool_caller"],
         "status": "completed",
-        "position": {"x": 550, "y": 60}
+        "position": {"x": 340, "y": 380}
     },
     {
         "id": "node_agent_tool_caller",
@@ -70,7 +70,7 @@ FLOW_A_NODES = [
         "inputs": {"tools": ["execute_sql_query"], "model": "chatModel"},
         "outputs": ["node_ast_validator"],
         "status": "completed",
-        "position": {"x": 550, "y": 280}
+        "position": {"x": 660, "y": 220}
     },
     {
         "id": "node_ast_validator",
@@ -81,7 +81,7 @@ FLOW_A_NODES = [
         "inputs": {"mode": "AST Validation", "allowedOperations": ["SELECT"]},
         "outputs": ["node_chart_synthesis"],
         "status": "completed",
-        "position": {"x": 810, "y": 180}
+        "position": {"x": 980, "y": 220}
     },
     {
         "id": "node_chart_synthesis",
@@ -92,7 +92,7 @@ FLOW_A_NODES = [
         "inputs": {"chartTypes": ["bar", "line", "pie", "horizontal_bar"], "format": "Structured JSON"},
         "outputs": [],
         "status": "completed",
-        "position": {"x": 1070, "y": 180}
+        "position": {"x": 1280, "y": 220}
     }
 ]
 
@@ -118,7 +118,7 @@ FLOW_B_NODES = [
         "inputs": {"fileTypes": [".pdf", ".csv", ".xlsx", ".txt", ".json"]},
         "outputs": ["node_text_splitter"],
         "status": "completed",
-        "position": {"x": 30, "y": 180}
+        "position": {"x": 40, "y": 220}
     },
     {
         "id": "node_text_splitter",
@@ -129,7 +129,7 @@ FLOW_B_NODES = [
         "inputs": {"chunkSize": 1000, "chunkOverlap": 200},
         "outputs": ["node_embeddings"],
         "status": "completed",
-        "position": {"x": 290, "y": 180}
+        "position": {"x": 340, "y": 220}
     },
     {
         "id": "node_embeddings",
@@ -140,7 +140,7 @@ FLOW_B_NODES = [
         "inputs": {"model": "text-embedding-3-small / text-embedding-004"},
         "outputs": ["node_vector_store"],
         "status": "completed",
-        "position": {"x": 550, "y": 180}
+        "position": {"x": 650, "y": 220}
     },
     {
         "id": "node_vector_store",
@@ -151,7 +151,7 @@ FLOW_B_NODES = [
         "inputs": {"vectorStore": "PGVector (PostgreSQL) / In-Memory Index", "topK": 6},
         "outputs": ["node_qa_chain"],
         "status": "completed",
-        "position": {"x": 810, "y": 180}
+        "position": {"x": 960, "y": 220}
     },
     {
         "id": "node_qa_chain",
@@ -162,7 +162,7 @@ FLOW_B_NODES = [
         "inputs": {"model": "gemini-flash", "temperature": 0.2, "returnSourceDocuments": True},
         "outputs": [],
         "status": "completed",
-        "position": {"x": 1070, "y": 180}
+        "position": {"x": 1270, "y": 220}
     }
 ]
 
@@ -250,48 +250,34 @@ FLOW_DATAVIZ_NODES = [
         "inputs": {"supportedFormats": [".csv", ".xlsx", ".json", "SQL Query"], "chatPrompt": "string"},
         "outputs": ["node_agent_dataviz"],
         "status": "completed",
-        "position": {"x": 40, "y": 200}
-    },
-    {
-        "id": "node_llm_model",
-        "name": "chatOpenAI",
-        "label": "2. LLM Engine (Gemini / Claude / GPT-4o)",
-        "category": "Model",
-        "description": "Primary reasoning LLM for planning data analysis & tool routing",
-        "inputs": {"model": "gemini-3.7-flash / gpt-4o", "temperature": 0.1, "maxTokens": 2048},
-        "outputs": ["node_agent_dataviz"],
-        "status": "completed",
-        "position": {"x": 300, "y": 60}
+        "position": {"x": 40, "y": 60}
     },
     {
         "id": "node_memory",
         "name": "bufferMemory",
-        "label": "3. Conversational Buffer Memory",
+        "label": "2. Conversational Buffer Memory",
         "category": "Memory",
         "description": "Retains active dataset schema, profile stats, and conversation turns",
         "inputs": {"memoryKey": "chat_history", "windowSize": 10},
         "outputs": ["node_agent_dataviz"],
         "status": "completed",
-        "position": {"x": 300, "y": 340}
+        "position": {"x": 40, "y": 220}
     },
     {
-        "id": "node_agent_dataviz",
-        "name": "toolCallingAgent",
-        "label": "4. DataViz Analyst Agent Node",
-        "category": "Agent",
-        "description": "Autonomous Data Analysis Agent executing INGEST -> CLEAN -> ANALYZE -> VISUALIZE -> NARRATE",
-        "inputs": {
-            "systemPrompt": DATAVIZ_SYSTEM_PROMPT,
-            "tools": ["data_profiler", "code_executor", "chart_generator", "dashboard_builder", "sql_query"]
-        },
-        "outputs": ["node_chat_output"],
+        "id": "node_llm_model",
+        "name": "chatOpenAI",
+        "label": "3. LLM Engine (Gemini / Claude / GPT-4o)",
+        "category": "Model",
+        "description": "Primary reasoning LLM for planning data analysis & tool routing",
+        "inputs": {"model": "gemini-3.7-flash / gpt-4o", "temperature": 0.1, "maxTokens": 2048},
+        "outputs": ["node_agent_dataviz"],
         "status": "completed",
-        "position": {"x": 620, "y": 200}
+        "position": {"x": 40, "y": 380}
     },
     {
         "id": "node_tool_profiler",
         "name": "customTool",
-        "label": "5. Tool: data_profiler",
+        "label": "4. Tool: data_profiler",
         "category": "Tool",
         "description": "Returns schema, row count, dtypes, nulls, and statistical distribution",
         "inputs": {
@@ -309,12 +295,12 @@ return JSON.stringify(profile);"""
         },
         "outputs": ["node_agent_dataviz"],
         "status": "completed",
-        "position": {"x": 920, "y": 40}
+        "position": {"x": 380, "y": 20}
     },
     {
         "id": "node_tool_code_executor",
         "name": "customTool",
-        "label": "6. Tool: code_executor (Sandbox)",
+        "label": "5. Tool: code_executor (Sandbox)",
         "category": "Tool",
         "description": "Sandboxed Python (pandas/numpy) engine for strict deterministic math & aggregations",
         "inputs": {
@@ -332,12 +318,12 @@ return res.stdout;"""
         },
         "outputs": ["node_agent_dataviz"],
         "status": "completed",
-        "position": {"x": 920, "y": 120}
+        "position": {"x": 380, "y": 140}
     },
     {
         "id": "node_tool_chart_gen",
         "name": "customTool",
-        "label": "7. Tool: chart_generator",
+        "label": "6. Tool: chart_generator",
         "category": "Tool",
         "description": "Renders high-definition Chart.js visual specs or QuickChart images",
         "inputs": {
@@ -353,12 +339,12 @@ return JSON.stringify(chartConfig);"""
         },
         "outputs": ["node_agent_dataviz"],
         "status": "completed",
-        "position": {"x": 920, "y": 200}
+        "position": {"x": 380, "y": 260}
     },
     {
         "id": "node_tool_dashboard_builder",
         "name": "customTool",
-        "label": "8. Tool: dashboard_builder",
+        "label": "7. Tool: dashboard_builder",
         "category": "Tool",
         "description": "Assembles Power BI-style CSS Grid: Row 1 KPI cards + Rows 2-3 Multi-Chart Grid",
         "inputs": {
@@ -382,12 +368,12 @@ return `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
         },
         "outputs": ["node_agent_dataviz"],
         "status": "completed",
-        "position": {"x": 920, "y": 280}
+        "position": {"x": 380, "y": 380}
     },
     {
         "id": "node_tool_sql_query",
         "name": "customTool",
-        "label": "9. Tool: sql_query (Read-Only)",
+        "label": "8. Tool: sql_query (Read-Only)",
         "category": "Tool",
         "description": "Executes read-only SQL queries against connected MySQL/PostgreSQL/SQLite database",
         "inputs": {
@@ -400,7 +386,21 @@ return JSON.stringify(res.rows);"""
         },
         "outputs": ["node_agent_dataviz"],
         "status": "completed",
-        "position": {"x": 920, "y": 360}
+        "position": {"x": 380, "y": 500}
+    },
+    {
+        "id": "node_agent_dataviz",
+        "name": "toolCallingAgent",
+        "label": "9. DataViz Analyst Agent Node",
+        "category": "Agent",
+        "description": "Autonomous Data Analysis Agent executing INGEST -> CLEAN -> ANALYZE -> VISUALIZE -> NARRATE",
+        "inputs": {
+            "systemPrompt": DATAVIZ_SYSTEM_PROMPT,
+            "tools": ["data_profiler", "code_executor", "chart_generator", "dashboard_builder", "sql_query"]
+        },
+        "outputs": ["node_chat_output"],
+        "status": "completed",
+        "position": {"x": 740, "y": 240}
     },
     {
         "id": "node_chat_output",
@@ -411,7 +411,7 @@ return JSON.stringify(res.rows);"""
         "inputs": {"format": "Power BI Inline HTML Dashboard + Narration"},
         "outputs": [],
         "status": "completed",
-        "position": {"x": 1200, "y": 200}
+        "position": {"x": 1080, "y": 240}
     }
 ]
 

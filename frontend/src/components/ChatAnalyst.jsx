@@ -4,7 +4,7 @@ import {
   Mic, MicOff, Terminal, Clock, ArrowRight, Table2, Search,
   History, CheckCircle, HelpCircle, X, Layers, AlertCircle, FileText,
   Upload, Trash2, FileSpreadsheet, FileCode, BookOpen, Paperclip, FileCheck,
-  TrendingUp, Radio, UserCheck, ShieldAlert, Zap, Compass, Lightbulb,
+  TrendingUp, Radio, UserCheck, ShieldAlert, Zap, Compass, Lightbulb, Target, Sparkles,
   PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen
 } from 'lucide-react';
 import { SqlResultTable } from './SqlResultTable.jsx';
@@ -651,42 +651,91 @@ const ChatAnalystBase = ({
                 const narration = activeRun.narration || activeRun.analysis?.narration;
                 const rowCount = activeRun.result?.rowCount || activeRun.result?.rows?.length || 0;
                 if (!narration || !narration.finding || rowCount <= 1) return null;
+                const keyFindingsList = narration.key_findings || activeRun.keyInsights || [];
+                const suggestionsList = narration.suggestions || [];
                 return (
-                  <div className="p-3 rounded-lg border border-slate-200 bg-slate-50 shadow-2xs space-y-2">
-                    <div className="flex items-center justify-between">
+                  <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/80 shadow-2xs space-y-3">
+                    <div className="flex items-center justify-between pb-1.5 border-b border-slate-200/80">
                       <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
-                        <Table2 className="h-3.5 w-3.5 text-slate-700" />
-                        <span>Data Storytelling & Strategic Assessment</span>
+                        <Sparkles className="h-4 w-4 text-blue-600" />
+                        <span>Data Storytelling & Executive Decision Framework</span>
                       </div>
-                      <span className="text-[10px] font-mono text-slate-500">
+                      <span className="text-[10px] font-mono text-slate-500 font-semibold">
                         Persona: {persona.charAt(0).toUpperCase() + persona.slice(1)} View
                       </span>
                     </div>
 
                     {/* The "So What?" Factor Card */}
                     {narration.so_what && (
-                      <div className="p-2.5 rounded-lg bg-white border-l-4 border-l-blue-600 border border-slate-200 shadow-2xs">
+                      <div className="p-3 rounded-lg bg-white border-l-4 border-l-blue-600 border border-slate-200 shadow-2xs">
                         <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wide flex items-center gap-1 mb-0.5">
-                          <Zap className="h-3 w-3" />
+                          <Zap className="h-3.5 w-3.5 text-blue-600" />
                           Executive "So What?" Factor
                         </span>
                         <p className="text-xs font-semibold text-slate-900 leading-relaxed">{narration.so_what}</p>
                       </div>
                     )}
 
+                    {/* Summary 3-Grid: Finding, Risk, Action */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                       <div className="p-2.5 rounded-lg bg-white border border-slate-200 shadow-2xs">
-                        <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wide block mb-0.5">Key Finding</span>
+                        <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wide block mb-0.5">Key Takeaway</span>
                         <p className="text-slate-800 font-medium leading-relaxed">{narration.finding}</p>
                       </div>
                       <div className="p-2.5 rounded-lg bg-white border border-slate-200 shadow-2xs">
-                        <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wide block mb-0.5">Risk & Anomaly</span>
+                        <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wide block mb-0.5">Risk & Volatility</span>
                         <p className="text-slate-800 font-medium leading-relaxed">{narration.risk}</p>
                       </div>
                       <div className="p-2.5 rounded-lg bg-white border border-slate-200 shadow-2xs">
-                        <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wide block mb-0.5">Actionable Step</span>
+                        <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wide block mb-0.5">Immediate Action</span>
                         <p className="text-slate-800 font-medium leading-relaxed">{narration.action}</p>
                       </div>
+                    </div>
+
+                    {/* Key Findings & Strategic Suggestions 2-Column Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 pt-0.5">
+                      {/* Detailed Key Findings */}
+                      {keyFindingsList.length > 0 && (
+                        <div className="p-3 rounded-lg bg-white border border-slate-200 shadow-2xs flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 mb-2">
+                              <Target className="h-3.5 w-3.5 text-emerald-600" />
+                              <span>Key Findings</span>
+                            </div>
+                            <ul className="space-y-1.5 text-xs text-slate-700">
+                              {keyFindingsList.map((item, idx) => (
+                                <li key={idx} className="flex items-start gap-1.5 leading-relaxed">
+                                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 shrink-0 mt-1.5"></span>
+                                  <span dangerouslySetInnerHTML={{ __html: item.replace(/\*\*(.*?)\*\*/g, '<strong class="text-slate-950 font-bold">$1</strong>') }}></span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          {narration.why_it_matters && (
+                            <div className="mt-2.5 pt-2 border-t border-slate-100 text-[11px] text-slate-500 font-medium">
+                              <strong className="text-slate-700">Why It Matters:</strong> {narration.why_it_matters}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Strategic Suggestions */}
+                      {suggestionsList.length > 0 && (
+                        <div className="p-3 rounded-lg bg-white border border-slate-200 shadow-2xs">
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 mb-2">
+                            <Lightbulb className="h-3.5 w-3.5 text-amber-500" />
+                            <span>Strategic Suggestions & Next Steps</span>
+                          </div>
+                          <ul className="space-y-1.5 text-xs text-slate-700">
+                            {suggestionsList.map((sug, idx) => (
+                              <li key={idx} className="flex items-start gap-1.5 leading-relaxed">
+                                <span className="h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0 mt-1.5"></span>
+                                <span>{sug}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );

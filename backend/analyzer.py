@@ -280,12 +280,18 @@ def detect_anomalies_and_trends(rows: List[Dict[str, Any]], primary_metric: str,
     }
 
 def generate_executive_narration(question: str, rows: List[Dict[str, Any]], kpis: List[Dict[str, Any]], stats_meta: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-    """Produces executive storytelling covering finding, anomaly/risk, actionable next step, and role-tailored briefings."""
+    """Produces comprehensive executive storytelling covering key findings, risks/anomalies, strategic suggestions, why it matters, and role-tailored briefings."""
     if not rows:
         return {
             "finding": "No matching records were located in the active dataset.",
+            "key_findings": ["No records matched the filter criteria in the current dataset."],
             "risk": "Ensure query filters align with available schema columns.",
             "action": "Broaden date ranges or re-check search terms.",
+            "suggestions": [
+                "Verify database table names and ensure filters are not overly restrictive.",
+                "Review date ranges or try broader categorical filters."
+            ],
+            "why_it_matters": "Zero data output indicates potential data latency, schema mismatch, or overly restrictive constraints.",
             "so_what": "Zero output indicates filter mismatch or data latency.",
             "executive_brief": "No material records found to support strategic decisions.",
             "analyst_brief": "SQL query returned 0 rows. Check WHERE clauses and indexes.",
@@ -294,6 +300,7 @@ def generate_executive_narration(question: str, rows: List[Dict[str, Any]], kpis
     
     top_performer = next((k["value"] for k in kpis if k["label"] == "Top Performer"), "Primary segment")
     total_metric = next((k["value"] for k in kpis if "Total" in k["label"]), f"{len(rows)} records")
+    avg_metric = next((k["value"] for k in kpis if "Avg" in k["label"]), None)
     
     outlier = stats_meta.get("outlier") if stats_meta else None
     trend = stats_meta.get("trend", "stable") if stats_meta else "stable"
@@ -308,6 +315,25 @@ def generate_executive_narration(question: str, rows: List[Dict[str, Any]], kpis
     risk = "Concentration risk is apparent if top performers dominate without secondary cohort resilience." if not outlier else f"Volatility alert: {anomaly_text}"
     action = "Recommend reviewing capacity allocation and margin thresholds to capitalize on top performers while shoring up the long tail."
     
+    # 1. Structured Key Findings (Bulleted observations)
+    key_findings = [
+        f"**Market Leader**: {top_performer} is the primary growth driver across this segment with aggregate volume contributing to {total_metric}.",
+        f"**Trajectory & Momentum**: Trend trajectory is currently {trend} with momentum recorded at {growth:+.1f}%.",
+        f"**Cohort Distribution**: Analyzed {len(rows)} distinct analytical data records" + (f" averaging {avg_metric} per unit." if avg_metric else ".")
+    ]
+    if outlier:
+        key_findings.append(f"**Data Outlier**: Anomaly spotted in {outlier['label']} ({outlier['type']} of {abs(outlier['deviationPercent'])}% vs mean).")
+
+    # 2. Actionable Strategic Suggestions
+    suggestions = [
+        f"Double down on {top_performer}: Expand distribution, marketing, and inventory backing where revenue velocity is highest.",
+        "Diversify risk: Introduce bundle promotions or loyalty incentives to strengthen underperforming long-tail cohorts.",
+        "Automate monitoring: Set real-time alerting on standard deviation swings to catch momentum drop-offs before quarter close."
+    ]
+
+    # 3. Why It Matters
+    why_it_matters = f"This cohort dictates commercial velocity for the period. With a {trend} trajectory ({growth:+.1f}% momentum), capital and supply chain decisions directly compound enterprise profitability."
+
     # "So What?" Factor for Executive Leadership
     so_what = f"The {top_performer} cohort dictates commercial trajectory ({trend} trend with {growth:+.1f}% momentum). Immediate prioritization is required to avoid revenue concentration bottlenecks."
 
@@ -318,8 +344,11 @@ def generate_executive_narration(question: str, rows: List[Dict[str, Any]], kpis
 
     return {
         "finding": finding,
+        "key_findings": key_findings,
         "risk": risk,
         "action": action,
+        "suggestions": suggestions,
+        "why_it_matters": why_it_matters,
         "so_what": so_what,
         "anomaly_text": anomaly_text,
         "personas": {

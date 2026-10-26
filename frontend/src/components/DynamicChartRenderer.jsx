@@ -13,7 +13,7 @@ import {
   Filler
 } from 'chart.js';
 import { Bar, Line, Pie, Doughnut } from 'react-chartjs-2';
-import { BarChart3, LineChart as LineChartIcon, PieChart as PieChartIcon, Box, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
+import { BarChart3, LineChart as LineChartIcon, PieChart as PieChartIcon, Box, TrendingUp, TrendingDown, AlertTriangle, Layers, AlignLeft } from 'lucide-react';
 import { Immersive3DVisualizer } from './Immersive3DVisualizer.jsx';
 
 // Register Chart.js elements
@@ -48,8 +48,11 @@ export const DynamicChartRenderer = ({
 }) => {
   const [activeType, setActiveType] = useState(() => {
     const rec = (recommendedVisualization || 'bar').toLowerCase();
+    if (rec.includes('horizontal') || rec.includes('ranking')) return 'horizontal_bar';
+    if (rec.includes('area')) return 'area';
     if (rec.includes('line')) return 'line';
-    if (rec.includes('pie') || rec.includes('donut') || rec.includes('doughnut')) return 'pie';
+    if (rec.includes('donut') || rec.includes('doughnut')) return 'doughnut';
+    if (rec.includes('pie')) return 'pie';
     return 'bar';
   });
 
@@ -63,20 +66,22 @@ export const DynamicChartRenderer = ({
 
     const labels = chartData.labels || [];
     const rawDatasets = chartData.datasets || [];
+    const isPieOrDonut = activeType === 'pie' || activeType === 'doughnut';
+    const isLineOrArea = activeType === 'line' || activeType === 'area';
+    const isArea = activeType === 'area';
 
     const datasets = rawDatasets.map((ds, dIdx) => {
-      const isPie = activeType === 'pie';
-      const isLine = activeType === 'line';
-
-      const bgColors = isPie
+      const bgColors = isPieOrDonut
         ? labels.map((_, i) => PALETTE[i % PALETTE.length].bg)
-        : isLine
-        ? 'rgba(37, 99, 235, 0.15)'
+        : isArea
+        ? 'rgba(37, 99, 235, 0.35)'
+        : isLineOrArea
+        ? 'rgba(37, 99, 235, 0.12)'
         : labels.map((_, i) => PALETTE[i % PALETTE.length].bg);
 
-      const borderColors = isPie
+      const borderColors = isPieOrDonut
         ? labels.map((_, i) => PALETTE[i % PALETTE.length].border)
-        : isLine
+        : isLineOrArea
         ? '#2563eb'
         : labels.map((_, i) => PALETTE[i % PALETTE.length].border);
 
@@ -86,13 +91,13 @@ export const DynamicChartRenderer = ({
         backgroundColor: bgColors,
         borderColor: borderColors,
         borderWidth: 2,
-        borderRadius: activeType === 'bar' ? 6 : 0,
-        fill: isLine,
-        tension: 0.35,
+        borderRadius: (activeType === 'bar' || activeType === 'horizontal_bar') ? 6 : 0,
+        fill: isArea,
+        tension: 0.38,
         pointBackgroundColor: '#1d4ed8',
         pointBorderColor: '#ffffff',
         pointHoverRadius: 6,
-        pointRadius: isLine ? 4 : 0
+        pointRadius: isLineOrArea ? 4 : 0
       };
     });
 
@@ -141,12 +146,16 @@ export const DynamicChartRenderer = ({
   }, [chartData, formattedData, title]);
 
   const chartOptions = useMemo(() => {
+    const isPieOrDonut = activeType === 'pie' || activeType === 'doughnut';
+    const isHorizontal = activeType === 'horizontal_bar';
+
     return {
       responsive: true,
       maintainAspectRatio: false,
+      indexAxis: isHorizontal ? 'y' : 'x',
       plugins: {
         legend: {
-          display: activeType === 'pie' || (formattedData?.datasets?.length || 0) > 1,
+          display: isPieOrDonut || (formattedData?.datasets?.length || 0) > 1,
           position: 'top',
           labels: {
             font: { size: 11, weight: 'bold', family: 'ui-sans-serif, system-ui' },
@@ -170,19 +179,22 @@ export const DynamicChartRenderer = ({
           }
         }
       },
-      scales: activeType === 'pie' ? {} : {
+      scales: isPieOrDonut ? {} : {
         x: {
-          grid: { display: false },
+          grid: { color: isHorizontal ? '#f1f5f9' : 'transparent' },
           ticks: {
             font: { size: 10, weight: '600' },
             color: '#475569',
-            maxRotation: 35
+            maxRotation: isHorizontal ? 0 : 35,
+            callback: function (value) {
+              return isHorizontal ? metricInfo.formatTick(value) : value;
+            }
           }
         },
         y: {
-          grid: { color: '#f1f5f9' },
+          grid: { color: isHorizontal ? 'transparent' : '#f1f5f9' },
           title: {
-            display: Boolean(metricInfo.label),
+            display: Boolean(metricInfo.label) && !isHorizontal,
             text: metricInfo.label,
             font: { size: 10, weight: '700' },
             color: '#64748b'
@@ -191,7 +203,7 @@ export const DynamicChartRenderer = ({
             font: { size: 10, weight: '600' },
             color: '#475569',
             callback: function (value) {
-              return metricInfo.formatTick(value);
+              return isHorizontal ? value : metricInfo.formatTick(value);
             }
           }
         }
@@ -214,12 +226,12 @@ export const DynamicChartRenderer = ({
           <span>{title}</span>
         </div>
 
-        {/* View Switcher: Bar | Line | Pie | 3D Immersive */}
-        <div className="flex items-center gap-0.5 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+        {/* View Switcher: Bar | Horizontal | Line | Area | Donut | Pie | 3D Space */}
+        <div className="flex flex-wrap items-center gap-0.5 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
           <button
             type="button"
             onClick={() => setActiveType('bar')}
-            title="Bar Chart"
+            title="Vertical Bar Chart"
             className={`flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold transition-colors cursor-pointer ${
               activeType === 'bar' ? 'bg-white text-blue-700 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
             }`}
@@ -229,8 +241,19 @@ export const DynamicChartRenderer = ({
           </button>
           <button
             type="button"
+            onClick={() => setActiveType('horizontal_bar')}
+            title="Horizontal Ranking Bar"
+            className={`flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold transition-colors cursor-pointer ${
+              activeType === 'horizontal_bar' ? 'bg-white text-blue-700 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <AlignLeft className="h-3 w-3" />
+            <span className="hidden sm:inline">Ranking</span>
+          </button>
+          <button
+            type="button"
             onClick={() => setActiveType('line')}
-            title="Line Chart"
+            title="Trend Line Chart"
             className={`flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold transition-colors cursor-pointer ${
               activeType === 'line' ? 'bg-white text-blue-700 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
             }`}
@@ -240,8 +263,30 @@ export const DynamicChartRenderer = ({
           </button>
           <button
             type="button"
+            onClick={() => setActiveType('area')}
+            title="Filled Area Chart"
+            className={`flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold transition-colors cursor-pointer ${
+              activeType === 'area' ? 'bg-white text-blue-700 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <Layers className="h-3 w-3" />
+            <span className="hidden sm:inline">Area</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveType('doughnut')}
+            title="Donut Distribution"
+            className={`flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold transition-colors cursor-pointer ${
+              activeType === 'doughnut' ? 'bg-white text-blue-700 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <PieChartIcon className="h-3 w-3" />
+            <span className="hidden sm:inline">Donut</span>
+          </button>
+          <button
+            type="button"
             onClick={() => setActiveType('pie')}
-            title="Pie / Donut Chart"
+            title="Pie Chart"
             className={`flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold transition-colors cursor-pointer ${
               activeType === 'pie' ? 'bg-white text-blue-700 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
             }`}
@@ -252,7 +297,7 @@ export const DynamicChartRenderer = ({
           <button
             type="button"
             onClick={() => setActiveType('3d')}
-            title="3D Immersive Analytics Mode"
+            title="3D Immersive Isometric Space"
             className={`flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold transition-colors cursor-pointer ${
               activeType === '3d' ? 'bg-slate-900 text-cyan-300 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
             }`}
@@ -290,7 +335,7 @@ export const DynamicChartRenderer = ({
         </div>
       )}
 
-      {/* Chart Stage: 2D or 3D Immersive */}
+      {/* Chart Stage: 2D Multi-Type or 3D Immersive */}
       {activeType === '3d' ? (
         <Immersive3DVisualizer
           labels={formattedData.labels}
@@ -300,9 +345,10 @@ export const DynamicChartRenderer = ({
         />
       ) : (
         <div className="h-64 sm:h-72 w-full relative">
-          {activeType === 'bar' && <Bar data={formattedData} options={chartOptions} />}
-          {activeType === 'line' && <Line data={formattedData} options={chartOptions} />}
-          {activeType === 'pie' && <Doughnut data={formattedData} options={chartOptions} />}
+          {(activeType === 'bar' || activeType === 'horizontal_bar') && <Bar data={formattedData} options={chartOptions} />}
+          {(activeType === 'line' || activeType === 'area') && <Line data={formattedData} options={chartOptions} />}
+          {activeType === 'doughnut' && <Doughnut data={formattedData} options={chartOptions} />}
+          {activeType === 'pie' && <Pie data={formattedData} options={chartOptions} />}
         </div>
       )}
     </div>
