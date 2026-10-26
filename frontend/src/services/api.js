@@ -2,13 +2,19 @@
  * Frontend Client API Service with Universal Multi-Database Connector, LLM Configuration & Document RAG
  */
 
+const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
+
+export function apiUrl(path) {
+  return `${API_BASE}${path}`;
+}
+
 /**
  * Executes a full natural language query analysis pipeline (Database Mode)
  * @param {string} question 
  * @returns {Promise<Object>}
  */
 export async function analyzeQuestion(question) {
-  const res = await fetch('/api/analyze', {
+  const res = await fetch(apiUrl('/api/analyze'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ question })
@@ -27,7 +33,7 @@ export async function analyzeQuestion(question) {
  * @returns {Promise<Object>}
  */
 export async function fetchSchema() {
-  const res = await fetch('/api/schema');
+  const res = await fetch(apiUrl('/api/schema'));
   if (!res.ok) throw new Error('Failed to fetch schema metadata');
   return await res.json();
 }
@@ -37,7 +43,7 @@ export async function fetchSchema() {
  * @returns {Promise<{ activeId: string, databases: Array }>}
  */
 export async function fetchDatabases() {
-  const res = await fetch('/api/db/list');
+  const res = await fetch(apiUrl('/api/db/list'));
   if (!res.ok) throw new Error('Failed to fetch databases');
   return await res.json();
 }
@@ -48,7 +54,7 @@ export async function fetchDatabases() {
  * @returns {Promise<Object>}
  */
 export async function switchDatabase(databaseId) {
-  const res = await fetch('/api/db/switch', {
+  const res = await fetch(apiUrl('/api/db/switch'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ databaseId })
@@ -66,7 +72,7 @@ export async function switchDatabase(databaseId) {
  * @returns {Promise<Object>}
  */
 export async function connectCustomDatabase(config) {
-  const res = await fetch('/api/db/connect', {
+  const res = await fetch(apiUrl('/api/db/connect'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(config)
@@ -84,7 +90,7 @@ export async function connectCustomDatabase(config) {
  * @returns {Promise<Object>}
  */
 export async function executeSqlSandbox(sql) {
-  const res = await fetch('/api/sql/execute', {
+  const res = await fetch(apiUrl('/api/sql/execute'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ sql })
@@ -107,7 +113,7 @@ export async function uploadRagFile(file) {
   const formData = new FormData();
   formData.append('file', file);
 
-  const res = await fetch('/api/rag/upload', {
+  const res = await fetch(apiUrl('/api/rag/upload'), {
     method: 'POST',
     body: formData
   });
@@ -124,7 +130,7 @@ export async function uploadRagFile(file) {
  * @returns {Promise<{ count: number, documents: Array }>}
  */
 export async function fetchRagDocuments() {
-  const res = await fetch('/api/rag/documents');
+  const res = await fetch(apiUrl('/api/rag/documents'));
   if (!res.ok) return { count: 0, documents: [] };
   return await res.json();
 }
@@ -135,7 +141,7 @@ export async function fetchRagDocuments() {
  * @returns {Promise<Object>}
  */
 export async function deleteRagDocument(docId) {
-  const res = await fetch(`/api/rag/documents/${docId}`, {
+  const res = await fetch(apiUrl(`/api/rag/documents/${docId}`), {
     method: 'DELETE'
   });
   const data = await res.json().catch(() => ({ error: 'Delete failed' }));
@@ -152,7 +158,7 @@ export async function deleteRagDocument(docId) {
  * @returns {Promise<Object>}
  */
 export async function analyzeRagQuestion(question, docId = null) {
-  const res = await fetch('/api/rag/analyze', {
+  const res = await fetch(apiUrl('/api/rag/analyze'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ question, docId })
@@ -173,7 +179,7 @@ export async function analyzeRagQuestion(question, docId = null) {
 export async function uploadSpreadsheet(file) {
   const formData = new FormData();
   formData.append('file', file);
-  const res = await fetch('/api/data/v1/upload-spreadsheet', {
+  const res = await fetch(apiUrl('/api/data/v1/upload-spreadsheet'), {
     method: 'POST',
     body: formData
   });
@@ -188,7 +194,7 @@ export async function uploadSpreadsheet(file) {
  * @returns {Promise<Object>}
  */
 export async function fetchFlowiseGraph(flowType = 'flow_a') {
-  const url = `/api/flowise/graph?flowType=${flowType}`;
+  const url = apiUrl(`/api/flowise/graph?flowType=${flowType}`);
   const res = await fetch(url);
   if (!res.ok) throw new Error('Failed to load Flowise workflow');
   return await res.json();
@@ -199,7 +205,7 @@ export async function fetchFlowiseGraph(flowType = 'flow_a') {
  * @returns {Promise<Object>}
  */
 export async function fetchFlowiseTemplates() {
-  const res = await fetch('/api/flowise/templates');
+  const res = await fetch(apiUrl('/api/flowise/templates'));
   if (!res.ok) throw new Error('Failed to load Flowise templates');
   return await res.json();
 }
@@ -209,7 +215,7 @@ export async function fetchFlowiseTemplates() {
  * @returns {Promise<Array>}
  */
 export async function fetchFlowiseNodes() {
-  const res = await fetch('/api/flowise/nodes/types');
+  const res = await fetch(apiUrl('/api/flowise/nodes/types'));
   if (!res.ok) return [];
   return await res.json();
 }
@@ -219,7 +225,7 @@ export async function fetchFlowiseNodes() {
  * @returns {Promise<Object>}
  */
 export async function runBenchmarks() {
-  const res = await fetch('/api/benchmark/run');
+  const res = await fetch(apiUrl('/api/benchmark/run'));
   if (!res.ok) throw new Error('Benchmark run failed');
   return await res.json();
 }
@@ -229,7 +235,7 @@ export async function runBenchmarks() {
  * @returns {Promise<Array>}
  */
 export async function fetchAuditLogs() {
-  const res = await fetch('/api/logs');
+  const res = await fetch(apiUrl('/api/logs'));
   if (!res.ok) return [];
   return await res.json();
 }
@@ -239,7 +245,7 @@ export async function fetchAuditLogs() {
  * @returns {Promise<Object>}
  */
 export async function clearAuditLogsApi() {
-  const res = await fetch('/api/logs/clear', { method: 'POST' });
+  const res = await fetch(apiUrl('/api/logs/clear'), { method: 'POST' });
   return await res.json();
 }
 
@@ -248,7 +254,7 @@ export async function clearAuditLogsApi() {
  * @returns {Promise<Object>}
  */
 export async function fetchLlmConfig() {
-  const res = await fetch('/api/config/llm');
+  const res = await fetch(apiUrl('/api/config/llm'));
   if (!res.ok) return { isConfigured: false };
   return await res.json();
 }
@@ -259,7 +265,7 @@ export async function fetchLlmConfig() {
  * @returns {Promise<Object>}
  */
 export async function saveLlmApiKey(apiKey) {
-  const res = await fetch('/api/config/llm', {
+  const res = await fetch(apiUrl('/api/config/llm'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ apiKey })
@@ -276,7 +282,7 @@ export async function saveLlmApiKey(apiKey) {
  */
 export async function fetchQueryHistory(limit = 60) {
   try {
-    const res = await fetch(`/api/history?limit=${limit}`);
+    const res = await fetch(apiUrl(`/api/history?limit=${limit}`));
     if (!res.ok) return [];
     const data = await res.json();
     return data.history || [];
@@ -290,7 +296,7 @@ export async function fetchQueryHistory(limit = 60) {
  * @returns {Promise<Object>}
  */
 export async function clearQueryHistoryApi() {
-  const res = await fetch('/api/history', { method: 'DELETE' });
+  const res = await fetch(apiUrl('/api/history'), { method: 'DELETE' });
   return await res.json();
 }
 
@@ -300,7 +306,7 @@ export async function clearQueryHistoryApi() {
  * @returns {Promise<Object>}
  */
 export async function deleteQueryHistoryApi(historyId) {
-  const res = await fetch(`/api/history/${historyId}`, { method: 'DELETE' });
+  const res = await fetch(apiUrl(`/api/history/${historyId}`), { method: 'DELETE' });
   return await res.json();
 }
 
